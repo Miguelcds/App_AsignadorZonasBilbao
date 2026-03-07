@@ -96,32 +96,30 @@ body {
 
 /* ── TABS NAV ── */
 .tab-nav {
-    display: flex;
-    gap: 4px;
-    padding: 24px 48px 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 20px 48px 0;
     border-bottom: 1px solid var(--border);
     margin-top: 28px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
 }
-
-.tab-nav::-webkit-scrollbar { display: none; }
 
 .tab-btn {
     background: none;
     border: none;
     color: var(--muted);
     font-family: var(--font-body);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 500;
-    padding: 10px 18px;
+    padding: 10px 6px;
     cursor: pointer;
-    white-space: nowrap;
+    text-align: center;
     border-radius: var(--radius) var(--radius) 0 0;
     border-bottom: 2px solid transparent;
     transition: all 0.2s var(--ease);
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .tab-btn:hover { color: var(--text); background: var(--surface); }
@@ -327,8 +325,9 @@ input[type="file"] {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    max-height: 200px;
+    max-height: 180px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .unmatched-tag {
@@ -379,6 +378,7 @@ input[type="file"] {
 
 .table-wrap {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     border-radius: 8px;
     border: 1px solid var(--border);
 }
@@ -510,6 +510,7 @@ tbody tr.row-missing td { opacity: 0.6; }
     gap: 6px;
     max-height: 320px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .custom-item {
@@ -615,22 +616,153 @@ footer {
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
 
-/* ── RESPONSIVE ── */
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE
+   Breakpoints:
+     tablet  → max-width: 768px
+     mobile  → max-width: 480px
+     tiny    → max-width: 360px
+   ══════════════════════════════════════════════════════════ */
+
+/* ── TABLET (≤ 768px) ── */
 @media (max-width: 768px) {
-    .hero-content { padding: 24px 20px 0; }
-    .tab-nav { padding: 16px 20px 0; }
-    .main-wrap { padding: 20px 16px 36px; }
-    .stats-bar { grid-template-columns: repeat(2, 1fr); }
-    .form-grid { grid-template-columns: 1fr; }
-    .preview-header { flex-direction: column; align-items: flex-start; }
-    footer { padding: 14px 20px; flex-direction: column; text-align: center; }
+
+    /* Hero */
+    .hero { min-height: 240px; }
+    .hero-content { padding: 20px 20px 0; }
+    .hero h1 { font-size: clamp(2.8rem, 10vw, 4rem); }
+    .hero-sub { font-size: 0.88rem; }
+
+    /* Tabs */
+    .tab-nav { padding: 12px 16px 0; }
+    .tab-btn { padding: 9px 6px; font-size: 0.78rem; }
+    /* Ocultar texto, mostrar solo emoji en tablets pequeños */
+    .tab-btn .tab-text { display: inline; }
+
+    /* Main */
+    .main-wrap { padding: 18px 14px 40px; }
+
+    /* Cards */
+    .card { padding: 20px 18px; }
+
+    /* Stats: 2 columnas */
+    .stats-bar { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat-num  { font-size: 1.8rem; }
+
+    /* Formulario: 1 columna */
+    .form-grid { grid-template-columns: 1fr; gap: 14px; }
+
+    /* Preview header: apilar */
+    .preview-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .preview-controls { width: 100%; }
+    .input-search { width: 100%; }
+    .input-select { width: 100%; }
+
+    /* Botones alineados en columna */
+    .btn-row { flex-direction: column; align-items: stretch; }
+    .btn-row .btn { width: 100%; }
+
+    /* Búsqueda */
     .search-row { flex-direction: column; }
-    .hero { min-height: 280px; }
+    .search-row .form-input { width: 100%; }
+    .search-row .btn { width: 100%; }
+
+    /* Tabla: reducir padding */
+    thead th { padding: 8px 10px; font-size: 0.7rem; }
+    tbody td { padding: 8px 10px; font-size: 0.8rem; }
+
+    /* Footer */
+    footer {
+        padding: 14px 16px;
+        flex-direction: column;
+        text-align: center;
+        gap: 4px;
+    }
+
+    /* Dict stats */
+    .dict-stats-grid { grid-template-columns: repeat(2, 1fr); }
+
+    /* Custom list */
+    .custom-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .custom-item .btn-del { align-self: flex-end; }
 }
 
+/* ── MOBILE (≤ 480px) ── */
 @media (max-width: 480px) {
-    .stats-bar { grid-template-columns: 1fr 1fr; }
-    .hero h1 { font-size: 3rem; }
-    .btn-row { flex-direction: column; }
-    .btn-row .btn { width: 100%; text-align: center; }
+
+    /* Hero: más compacto */
+    .hero { min-height: 200px; }
+    .hero-content { padding: 16px 16px 0; }
+    .hero h1 { font-size: 2.8rem; line-height: 0.9; }
+    .hero-tag { font-size: 0.65rem; }
+    .hero-sub { display: none; } /* sacrificamos el subtítulo en móvil pequeño */
+
+    /* Tabs: más compactos */
+    .tab-nav { padding: 8px 10px 0; }
+    .tab-btn { padding: 8px 4px; font-size: 0.72rem; }
+    /* Ocultar texto en móvil, solo emoji */
+    .tab-btn .tab-text { display: none; }
+    .tab-btn { font-size: 1.1rem; letter-spacing: 0; }
+
+    /* Main */
+    .main-wrap { padding: 14px 12px 32px; }
+
+    /* Cards */
+    .card { padding: 16px 14px; margin-bottom: 14px; }
+    .card-title { font-size: 0.92rem; }
+
+    /* Stats: 2x2 compactas */
+    .stats-bar { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat-item { padding: 12px 10px; }
+    .stat-num  { font-size: 1.6rem; }
+    .stat-label { font-size: 0.68rem; }
+
+    /* Upload card */
+    .upload-icon { font-size: 2rem; }
+    .upload-label { font-size: 0.88rem; }
+    .upload-hint  { font-size: 0.72rem; }
+
+    /* Botones */
+    .btn { padding: 12px 20px; font-size: 0.85rem; }
+    .btn-sm { padding: 9px 14px; font-size: 0.78rem; }
+
+    /* Tabla: ocultar columna # en móvil */
+    thead th:first-child,
+    tbody td:first-child { display: none; }
+
+    /* Chips de zona: más pequeños */
+    .zona-chip { font-size: 0.75rem; padding: 4px 10px 4px 6px; }
+
+    /* Tags no identificadas */
+    .unmatched-tag { font-size: 0.73rem; padding: 3px 8px; }
+
+    /* Paginación */
+    .page-btn { padding: 5px 9px; font-size: 0.75rem; }
+
+    /* Dict stats */
+    .dict-stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .ds-num { font-size: 1.3rem; }
+
+    /* Lookup */
+    .lookup-result { font-size: 0.85rem; padding: 12px 14px; }
+
+    /* Footer */
+    footer { font-size: 0.72rem; padding: 12px 14px; }
 }
+
+/* ── TINY (≤ 360px) ── */
+@media (max-width: 360px) {
+
+    .hero h1 { font-size: 2.3rem; }
+
+    /* Tabs: solo emojis */
+    .tab-btn { font-size: 1.2rem; padding: 10px 6px; }
+
+    .stats-bar { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .stat-item { padding: 10px 8px; }
+    .stat-num  { font-size: 1.4rem; }
+
+    .card { padding: 14px 12px; }
+    .main-wrap { padding: 12px 10px 28px; }
+}
+

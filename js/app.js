@@ -77,7 +77,7 @@ dropzone.addEventListener('drop', e => {
     }
 });
 
-dropzone.addEventListener('click', e => { if (e.target !== fileInput) fileInput.click(); });
+dropzone.addEventListener('click', e => { if (e.target === dropzone || e.target.classList.contains('upload-icon') || e.target.classList.contains('upload-label') || e.target.classList.contains('upload-hint')) fileInput.click(); });
 fileInput.addEventListener('change', e => { processBtn.disabled = !e.target.files.length; });
 
 // ── PROCESAR EXCEL ───────────────────────────────────────
