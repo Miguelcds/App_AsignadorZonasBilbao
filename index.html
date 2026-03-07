@@ -2,63 +2,248 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#000000">
-    <link rel="icon" href="images.png" type="image/x-icon">
-    <title>Asignador de Zonas de Bilbao</title>
-    <link rel="stylesheet" href="styles.css"> 
-    <link rel="manifest" href="./manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0a0f">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" href="assets/images.png" type="image/x-icon">
+    <title>Asignador de Zonas · Bilbao</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-    <!-- SheetJS (xlsx) libreria para usar Excel -->
+    <!-- SheetJS para procesar Excel -->
     <script defer src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
-    <script defer src="script.js"> </script>
-    
+    <!-- Diccionario de zonas (debe cargarse antes que app.js) -->
+    <script defer src="js/data.js"></script>
+    <!-- Lógica de la aplicación -->
+    <script defer src="js/app.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="main-content">
-            <h1>Asignador de Zonas de Bilbao</h1>
 
-            <div class="upload-container">
-                <p>Selecciona tu archivo Excel (.xlsx) con las calles:</p>
+    <!-- ── HERO ── -->
+    <header class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <span class="hero-tag">Bilbao · Bizkaia</span>
+            <h1>ASIGNADOR<br><em>DE ZONAS</em></h1>
+            <p class="hero-sub">Procesa archivos Excel y asigna cada calle a su zona de reparto automáticamente</p>
+        </div>
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="upload">📁 <span class="tab-text">Procesar Excel</span></button>
+            <button class="tab-btn" data-tab="addstreet">➕ <span class="tab-text">Nueva Calle</span></button>
+            <button class="tab-btn" data-tab="search">🔍 <span class="tab-text">Consultar</span></button>
+            <button class="tab-btn" data-tab="dictionary">📋 <span class="tab-text">Diccionario</span></button>
+        </nav>
+    </header>
+
+    <main class="main-wrap">
+
+        <!-- ── TAB 1: SUBIR EXCEL ── -->
+        <section class="tab-panel active" id="tab-upload">
+
+            <div class="card upload-card" id="dropzone">
+                <div class="upload-icon">📂</div>
+                <p class="upload-label">Arrastra tu Excel aquí o haz clic para seleccionar</p>
                 <input type="file" id="fileInput" accept=".xlsx, .xls" />
-                <br>
-                <button id="processBtn" disabled>Procesar Archivo</button>
-                <button id="downloadBtn" disabled>Descargar Resultado</button>
+                <span class="upload-hint">Formatos admitidos: .xlsx · .xls</span>
+                <div class="btn-row">
+                    <button id="processBtn" class="btn btn-primary" disabled>Procesar Archivo</button>
+                    <button id="downloadBtn" class="btn btn-outline" disabled>Descargar Resultado</button>
+                </div>
             </div>
 
-            <div id="results"></div>
-        </div>
-    </div>
+            <!-- Barra de estadísticas -->
+            <div id="statsBar" class="stats-bar hidden">
+                <div class="stat-item">
+                    <span class="stat-num" id="statTotal">0</span>
+                    <span class="stat-label">Total calles</span>
+                </div>
+                <div class="stat-item success">
+                    <span class="stat-num" id="statFound">0</span>
+                    <span class="stat-label">Identificadas</span>
+                </div>
+                <div class="stat-item danger">
+                    <span class="stat-num" id="statMissing">0</span>
+                    <span class="stat-label">No encontradas</span>
+                </div>
+                <div class="stat-item accent">
+                    <span class="stat-num" id="statPct">0%</span>
+                    <span class="stat-label">Cobertura</span>
+                </div>
+            </div>
+
+            <!-- Desglose por zona -->
+            <div id="zonaBreakdown" class="card breakdown-card hidden">
+                <h3 class="card-title">Distribución por Zonas</h3>
+                <div id="zonaList" class="zona-list"></div>
+            </div>
+
+            <!-- Calles sin zona -->
+            <div id="unmatchedCard" class="card unmatched-card hidden">
+                <h3 class="card-title">⚠ Calles No Identificadas</h3>
+                <p class="card-sub">Haz clic en una calle para añadirla rápidamente al diccionario.</p>
+                <div id="unmatchedList" class="unmatched-list"></div>
+                <button id="exportUnmatched" class="btn btn-sm btn-outline" style="margin-top:12px">Exportar .txt</button>
+            </div>
+
+            <!-- Vista previa con filtros -->
+            <div id="previewCard" class="card preview-card hidden">
+                <div class="preview-header">
+                    <h3 class="card-title">Vista Previa</h3>
+                    <div class="preview-controls">
+                        <input type="text" id="previewSearch" class="input-search" placeholder="Filtrar…" />
+                        <select id="previewFilter" class="input-select">
+                            <option value="all">Todas</option>
+                            <option value="found">Identificadas</option>
+                            <option value="missing">No encontradas</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table id="previewTable">
+                        <thead>
+                            <tr><th>#</th><th>Calle</th><th>Zona</th><th>Estado</th></tr>
+                        </thead>
+                        <tbody id="previewBody"></tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="pagination"></div>
+            </div>
+
+        </section>
+
+        <!-- ── TAB 2: NUEVA CALLE ── -->
+        <section class="tab-panel" id="tab-addstreet">
+            <div class="card">
+                <h3 class="card-title">➕ Añadir Calle al Diccionario</h3>
+                <p class="card-sub">Las calles personalizadas se guardan en el navegador y tienen prioridad sobre el diccionario base.</p>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="newStreetInput">Nombre de la calle</label>
+                        <input type="text" id="newStreetInput" class="form-input" placeholder="Ej: GRAN VÍA" />
+                        <span class="form-hint">Se guardará en mayúsculas automáticamente</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="zoneSelect">Zona</label>
+                        <select id="zoneSelect" class="form-input">
+                            <option value="">-- Selecciona una zona --</option>
+                            <option value="Deusto">Deusto</option>
+                            <option value="Deusto Muelle">Deusto Muelle</option>
+                            <option value="Deusto Monte">Deusto Monte</option>
+                            <option value="San Ignacio">San Ignacio</option>
+                            <option value="Matiko">Matiko</option>
+                            <option value="Matiko Alto">Matiko Alto</option>
+                            <option value="Bilbao Centro">Bilbao Centro</option>
+                            <option value="Bilbao-Basurtu">Bilbao-Basurtu</option>
+                            <option value="Bilbao Muelle">Bilbao Muelle</option>
+                            <option value="Kasko Viejo">Kasko Viejo</option>
+                            <option value="Santutxu">Santutxu</option>
+                            <option value="Santutxu Alto">Santutxu Alto</option>
+                            <option value="San Francisco">San Francisco</option>
+                            <option value="Miribilla">Miribilla</option>
+                            <option value="Zamakola">Zamakola</option>
+                            <option value="Zorroza">Zorroza</option>
+                            <option value="Zurbaranbarri">Zurbaranbarri</option>
+                            <option value="Rekalde">Rekalde</option>
+                            <option value="Txurdinaga">Txurdinaga</option>
+                            <option value="Txurdinaga - Alto">Txurdinaga - Alto</option>
+                            <option value="custom">✏ Zona personalizada…</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="customZoneGroup" style="display:none">
+                        <label class="form-label" for="customZoneInput">Nombre de la zona nueva</label>
+                        <input type="text" id="customZoneInput" class="form-input" placeholder="Ej: Periferia Norte" />
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button id="addStreetBtn" class="btn btn-primary">Guardar Calle</button>
+                    <button id="exportCustomBtn" class="btn btn-outline">Exportar mis calles (JSON)</button>
+                </div>
+                <div id="addFeedback" class="feedback hidden"></div>
+            </div>
+
+            <div class="card">
+                <div class="preview-header">
+                    <h3 class="card-title">Mis Calles Personalizadas</h3>
+                    <span id="customCount" class="badge">0 calles</span>
+                </div>
+                <div id="customList" class="custom-list"></div>
+                <button id="clearCustomBtn" class="btn btn-danger btn-sm" style="margin-top:14px">Eliminar todas</button>
+            </div>
+        </section>
+
+        <!-- ── TAB 3: CONSULTAR ── -->
+        <section class="tab-panel" id="tab-search">
+            <div class="card">
+                <h3 class="card-title">🔍 Consultar Zona de una Calle</h3>
+                <p class="card-sub">Escribe el nombre de una calle para ver a qué zona pertenece.</p>
+                <div class="search-row">
+                    <input type="text" id="lookupInput" class="form-input" placeholder="Ej: Iparraguirre…" />
+                    <button id="lookupBtn" class="btn btn-primary">Consultar</button>
+                </div>
+                <div id="lookupResult" class="lookup-result hidden"></div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">📊 Estadísticas del Diccionario</h3>
+                <div id="dictStats" class="dict-stats-grid"></div>
+            </div>
+        </section>
+
+        <!-- ── TAB 4: DICCIONARIO ── -->
+        <section class="tab-panel" id="tab-dictionary">
+            <div class="card">
+                <div class="preview-header">
+                    <h3 class="card-title">📋 Diccionario Completo</h3>
+                    <div class="preview-controls">
+                        <input type="text" id="dictSearch" class="input-search" placeholder="Buscar calle o zona…" />
+                        <select id="dictZoneFilter" class="input-select">
+                            <option value="">Todas las zonas</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="card-sub" id="dictCounter"></p>
+                <div class="table-wrap">
+                    <table id="dictTable">
+                        <thead>
+                            <tr><th>Clave (Calle)</th><th>Zona</th><th>Fuente</th></tr>
+                        </thead>
+                        <tbody id="dictBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
 
     <footer>
-        Todos los derechos reservados     © J.Costa 2026
+        <span>Asignador de Zonas · Bilbao</span>
+        <span>© J.Costa 2026 — Todos los derechos reservados</span>
     </footer>
 
-    <!-- Registrar el Service Worker -->
+    <!-- Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js')
-                .then((registration) => {
-                    console.log('Service Worker registrado');
-    
-                    // Detectar actualizaciones en el Service Worker
-                    registration.onupdatefound = () => {
-                        const installingWorker = registration.installing;
-                        installingWorker.onstatechange = () => {
-                            if (installingWorker.state === 'installed') {
-                                if (navigator.serviceWorker.controller) {
-                                    // Recargar automáticamente la página
-                                    console.log('Nueva versión disponible. Recargando...');
-                                    window.location.reload();
-                                }
+                .then(reg => {
+                    reg.onupdatefound = () => {
+                        const w = reg.installing;
+                        w.onstatechange = () => {
+                            if (w.state === 'installed' && navigator.serviceWorker.controller) {
+                                window.location.reload();
                             }
                         };
                     };
                 })
-                .catch((error) => console.error('Error al registrar el Service Worker:', error));
+                .catch(err => console.error('SW error:', err));
         }
-      </script>
+    </script>
 
 </body>
 </html>
+
