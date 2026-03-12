@@ -1,6 +1,6 @@
 # 📍 Asignador de Zonas de Bilbao
 
-Aplicación web progresiva (PWA) que procesa archivos Excel con listados de calles y les asigna automáticamente su zona de reparto en Bilbao.
+Aplicación web progresiva (PWA) que procesa archivos Excel con listados de calles y les asigna automáticamente su zona en Bilbao.
 
 ![Version](https://img.shields.io/badge/versión-2.0-e63030) ![PWA](https://img.shields.io/badge/PWA-compatible-22c55e) ![License](https://img.shields.io/badge/licencia-privada-9a9590)
 
